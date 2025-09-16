@@ -9,6 +9,7 @@ interface Post {
   body: PortableTextBlock[];
   imageUrl: string;
 }
+type Params = { slug: string };
 
 async function getPost(slug: string) {
   const post = await client.fetch<Post>(
@@ -18,12 +19,10 @@ async function getPost(slug: string) {
   return post;
 }
 
-export default async function PostPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
-  const post = await getPost(params.slug);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default async function PostPage({ params }: any) {
+  const { slug } = params as Params;
+  const post = await getPost(slug);
 
   if (!post) {
     return <div>Post not found</div>;
