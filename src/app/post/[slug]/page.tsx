@@ -1,5 +1,5 @@
-import { client } from '../../../lib/sanity';
-import { PortableText } from '@portabletext/react';
+import { client } from "../../../lib/sanity";
+import { PortableText } from "@portabletext/react";
 import { PortableTextBlock } from "@portabletext/types";
 import Image from "next/image";
 
@@ -11,15 +11,20 @@ interface Post {
 }
 
 async function getPost(slug: string) {
-  const post = await client.fetch<Post>(
+  return client.fetch<Post>(
     `*[_type == "post" && slug.current == $slug][0]{_id, title, body, "imageUrl": mainImage.asset->url}`,
     { slug }
   );
-  return post;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default async function PostPage({ params }: any) {
+interface PostPageProps {
+  params: {
+    slug: string;
+  };
+}
+
+export default async function PostPage(props: PostPageProps) {
+  const params = await props.params;
   const post = await getPost(params.slug);
 
   if (!post) {

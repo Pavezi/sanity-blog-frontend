@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import { client } from '../lib/sanity';
+import Link from "next/link";
+import { client } from "../lib/sanity";
 import Image from "next/image";
 
 interface Post {
@@ -12,15 +12,33 @@ interface Post {
 
 async function getPosts(query: string) {
   const sanityQuery = query
-    ? `*[_type == "post" && (title match $query || pt::text(body) match $query)]{_id, title, "slug": slug.current, "excerpt": pt::text(body[0..1]), "imageUrl": mainImage.asset->url}`
-    : `*[_type == "post"]{_id, title, "slug": slug.current, "excerpt": pt::text(body[0..1]), "imageUrl": mainImage.asset->url}`;
+    ? `*[_type == "post" && (title match $query || pt::text(body) match $query)]{
+        _id, title, "slug": slug.current,
+        "excerpt": pt::text(body[0..1]),
+        "imageUrl": mainImage.asset->url
+      }`
+    : `*[_type == "post"]{
+        _id, title, "slug": slug.current,
+        "excerpt": pt::text(body[0..1]),
+        "imageUrl": mainImage.asset->url
+      }`;
 
-  const posts = await client.fetch<Post[]>(sanityQuery, { query: `${query}*` });
-  return posts;
+  // ✅ Forçar o tipo de `params`
+  const params: Record<string, string> = query ? { query: `${query}*` } : {};
+
+  return client.fetch<Post[]>(sanityQuery, params);
 }
 
-export default async function Home({ searchParams }: { searchParams?: { query?: string } }) {
-  const posts = await getPosts(searchParams?.query || '');
+// 👇 define your own prop type
+type HomePageProps = {
+  searchParams?: {
+    query?: string;
+  };
+};
+
+export default async function Home(props: HomePageProps) {
+  const searchParams = await props.searchParams;
+  const posts = await getPosts(searchParams?.query || "");
 
   return (
     <div className="container mx-auto px-4 py-8">
