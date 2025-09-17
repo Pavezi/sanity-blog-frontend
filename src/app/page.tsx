@@ -10,19 +10,20 @@ interface Post {
   imageUrl: string;
 }
 
-async function getPosts() {
-  const posts = await client.fetch<Post[]>(
-    `*[_type == "post"]{_id, title, "slug": slug.current, "excerpt": pt::text(body[0..1]), "imageUrl": mainImage.asset->url}`
-  );
+async function getPosts(query: string) {
+  const sanityQuery = query
+    ? `*[_type == "post" && (title match $query || pt::text(body) match $query)]{_id, title, "slug": slug.current, "excerpt": pt::text(body[0..1]), "imageUrl": mainImage.asset->url}`
+    : `*[_type == "post"]{_id, title, "slug": slug.current, "excerpt": pt::text(body[0..1]), "imageUrl": mainImage.asset->url}`;
+
+  const posts = await client.fetch<Post[]>(sanityQuery, { query: `${query}*` });
   return posts;
 }
 
-export default async function Home() {
-  const posts = await getPosts();
+export default async function Home({ searchParams }: { searchParams?: { query?: string } }) {
+  const posts = await getPosts(searchParams?.query || '');
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8 text-center">Demo Blog</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {posts.map((post) => (
           <Link key={post._id} href={`/post/${post.slug}`}>
