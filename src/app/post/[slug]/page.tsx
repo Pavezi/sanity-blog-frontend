@@ -18,9 +18,9 @@ async function getPost(slug: string) {
 }
 
 interface PostPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export default async function PostPage(props: PostPageProps) {

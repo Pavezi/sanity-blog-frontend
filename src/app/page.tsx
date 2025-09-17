@@ -23,22 +23,22 @@ async function getPosts(query: string) {
         "imageUrl": mainImage.asset->url
       }`;
 
-  // ✅ Forçar o tipo de `params`
   const params: Record<string, string> = query ? { query: `${query}*` } : {};
 
   return client.fetch<Post[]>(sanityQuery, params);
 }
 
-// 👇 define your own prop type
+// Updated type definition for Next.js 15
 type HomePageProps = {
-  searchParams?: {
+  searchParams: Promise<{
     query?: string;
-  };
+  }>;
 };
 
-export default async function Home(props: HomePageProps) {
-  const searchParams = await props.searchParams;
-  const posts = await getPosts(searchParams?.query || "");
+export default async function Home({ searchParams }: HomePageProps) {
+  // Await the searchParams promise
+  const resolvedSearchParams = await searchParams;
+  const posts = await getPosts(resolvedSearchParams?.query || "");
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -55,7 +55,6 @@ export default async function Home(props: HomePageProps) {
                   className="w-full h-48 object-cover"
                 />
               )}
-
               <div className="p-4">
                 <h2 className="text-2xl font-bold mb-2">{post.title}</h2>
                 <p className="text-gray-700">{post.excerpt}</p>
